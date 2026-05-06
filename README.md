@@ -20,7 +20,7 @@
 
 ---
 
-This repository contains a **small, intentional slice** of Project Engine — a proprietary, ground-up game engine and simulation platform currently under active development.
+This repository contains a **small, intentional slice** of Project Engine - a proprietary, ground-up game engine and simulation platform currently under active development.
 
 This is not the full project. This is a proof that it exists.
 
@@ -30,7 +30,7 @@ This is not the full project. This is a proof that it exists.
 
 Project Engine is a complete game engine being built entirely from scratch in C++20/23. No Unity. No Unreal. No shortcuts.
 
-The goal is a unified platform for interactive entertainment and high-fidelity simulation — with physically accurate rendering, musculoskeletal animation, dual-mode AI (classical + neural), and ray-traced spatial audio.
+The goal is a unified platform for interactive entertainment and high-fidelity simulation - with physically accurate rendering, musculoskeletal animation, dual-mode AI (classical + neural), and ray-traced spatial audio.
 
 The architecture prioritises one thing above everything else: **performance that cannot be questioned.**
 
@@ -61,7 +61,7 @@ engine/
 
 ## Where The Engine Stands
 
-### ✅ Completed — Execution Foundation
+### ✅ Completed - Execution Foundation
 
 | Component | Detail |
 |---|---|
@@ -89,23 +89,23 @@ Every frame, the engine does this:
 ```
 Frame ─────────────────────────────────────────────────────
 │
-├── [Simulation Phase — 120Hz Fixed]
+├── [Simulation Phase - 120Hz Fixed]
 │   ├── Layer 0: [Input System]         ─── dispatches N chunk jobs ─┐
 │   ├── Layer 1: [Physics System]       ─── dispatches N chunk jobs ─┤ ← All run in
 │   ├── Layer 2: [Animation System]     ─── dispatches N chunk jobs ─┤   parallel across
-│   └── Layer 3: [AI System — 30Hz]     ─── dispatches N chunk jobs ─┘   all CPU cores
+│   └── Layer 3: [AI System - 30Hz]     ─── dispatches N chunk jobs ─┘   all CPU cores
 │
-├── [Render Prep Phase — Variable]
+├── [Render Prep Phase - Variable]
 │   └── Interpolation pass (alpha blending prev/current state)
 │
-└── [Render Phase — Variable]
+└── [Render Phase - Variable]
     └── GPU submission
 ```
 
 Each system:
 1. Declares its `ComponentMask` (what data it reads and writes)
 2. The scheduler detects conflicts automatically and orders execution
-3. At runtime, the system calls `Query::dispatch()` once — which slices memory into 16KB chunks and fires a job per chunk into the lock-free thread pool
+3. At runtime, the system calls `Query::dispatch()` once - which slices memory into 16KB chunks and fires a job per chunk into the lock-free thread pool
 
 A single system processing 100,000 entities spawns hundreds of parallel jobs instantly.
 
@@ -127,7 +127,7 @@ This repository does not contain:
 
 **Memory**: Entities are stored in 16KB cache-aligned Struct of Arrays chunks. No heap allocation at runtime. No pointer chasing between components.
 
-**Threading**: A lock-free Chase-Lev work-stealing deque. Worker threads never spin or sleep — they steal chunks from each other's queues. When a fiber blocks on a dependency, it yields its stack and is immediately replaced by another runnable fiber.
+**Threading**: A lock-free Chase-Lev work-stealing deque. Worker threads never spin or sleep - they steal chunks from each other's queues. When a fiber blocks on a dependency, it yields its stack and is immediately replaced by another runnable fiber.
 
 **Scheduling**: Systems declare their data requirements at registration. A Kahn topological sort groups them into parallelizable layers. Transitive data hazards are detected via full closure DFS. Frequency mismatches (30Hz AI on a 120Hz loop) cascade correctly through freshness policies.
 
