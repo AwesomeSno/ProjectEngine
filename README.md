@@ -137,7 +137,7 @@ This repository does not contain:
 
 <div align="center">
 
-**© AxeomLabs. All rights reserved.**
+**© Harinandan J V. All rights reserved.**
 
 *This project is proprietary and not licensed for external use.*
 
