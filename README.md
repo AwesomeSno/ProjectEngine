@@ -9,7 +9,7 @@
 ╚══════╝╚═╝  ╚═══╝ ╚═════╝ ╚═╝╚═╝  ╚═══╝╚══════╝
 ```
 
-**A game engine. Built from nothing. For everything.**
+**A definitive software platform. Built from nothing. For everything.**
 
 [![Status](https://img.shields.io/badge/Status-In%20Development-blueviolet?style=flat-square)]()
 [![Language](https://img.shields.io/badge/Language-C%2B%2B20%2F23-orange?style=flat-square)]()
@@ -20,7 +20,7 @@
 
 ---
 
-This repository contains a **small, intentional slice** of Project Engine - a proprietary, ground-up game engine and simulation platform currently under active development.
+This repository contains a **small, intentional slice** of Project Engine - a proprietary, ground-up scientific-grade simulation and interactive software platform currently under active development.
 
 This is not the full project. This is a proof that it exists.
 
@@ -28,7 +28,7 @@ This is not the full project. This is a proof that it exists.
 
 ## What This Is
 
-Project Engine is a complete game engine being built entirely from scratch in C++20/23. No Unity. No Unreal. No shortcuts.
+Project Engine is a unified simulation platform being built entirely from scratch in C++20/23. No Unity. No Unreal. No shortcuts.
 
 The goal is a unified platform for interactive entertainment and high-fidelity simulation - with physically accurate rendering, musculoskeletal animation, dual-mode AI (classical + neural), and ray-traced spatial audio.
 
