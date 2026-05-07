@@ -44,13 +44,23 @@ inline void internal_chunk_task(void* raw_data, u32, threading::JobCounter*) {
 
 class Query {
 public:
+    explicit Query(const ComponentMask& mask) : m_mask(mask), m_version(0) {}
+
     // Core architectural convergence function.
+    // Uses a lazy-evaluation cache to completely bypass O(N) archetype scanning.
     // Iterates all chunks matching the mask and instantly saturates the multi-core
     // job system with N chunks. Jobs are bound to the Scheduler's topological barrier.
-    static void dispatch(SystemContext& ctx, const ComponentMask& query_mask, ChunkJobFunc func) {
-        std::vector<Archetype*> matching_archetypes = ctx.registry->get_matching_archetypes(query_mask);
+    void dispatch(SystemContext& ctx, ChunkJobFunc func) {
+        u64 current_version = ctx.registry->get_archetype_version();
 
-        for (Archetype* arch : matching_archetypes) {
+        // Lazy Cache Invalidation
+        if (m_version != current_version) {
+            m_cached_archetypes = ctx.registry->get_matching_archetypes(m_mask);
+            m_version = current_version;
+        }
+
+        // Fast Iteration Path: Zero scanning, pure dispatch
+        for (Archetype* arch : m_cached_archetypes) {
             for (Chunk* chunk : arch->chunks) {
                 // Must use FrameAllocator because the job data needs to outlive this function scope,
                 // but we cannot block the thread with global heap (malloc/new) locks.
@@ -69,6 +79,11 @@ public:
             }
         }
     }
+
+private:
+    ComponentMask m_mask;
+    u64 m_version;
+    std::vector<Archetype*> m_cached_archetypes;
 };
 
 } // namespace engine::ecs

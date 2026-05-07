@@ -19,6 +19,9 @@ struct EntityLocation {
 
 class Registry {
 public:
+    // Exposes current structural version. Used to invalidate Query caches.
+    u64 get_archetype_version() const { return m_archetype_version; }
+
     // Filters all archetypes against the bitmask to find perfectly matched component groups
     std::vector<Archetype*> get_matching_archetypes(const ComponentMask& query_mask) const {
         std::vector<Archetype*> result;
@@ -43,10 +46,12 @@ public:
 
 private:
     // Migration Pipeline
+    Archetype* find_or_create_archetype(const ComponentMask& mask);
     void migrate_entity(Entity entity, Archetype* new_archetype);
     void swap_remove(EntityLocation loc);
 
     std::vector<Archetype*> m_archetypes;
+    u64 m_archetype_version = 1; // Incremented whenever an Archetype is created/destroyed
 
     // Sparse set: Direct array mapped to entity_index(Entity)
     // Ensures any entity lookup takes 1 memory access
