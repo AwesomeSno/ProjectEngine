@@ -22,7 +22,14 @@ struct EntityLocation {
 class Registry {
 public:
     template<typename T>
-    void register_component(ComponentID id) {
+    void register_component(ComponentID id, const char* name, u32 custom_stride = sizeof(T)) {
+        ComponentInfo info;
+        info.id = id;
+        info.name = name;
+        info.size = sizeof(T);
+        info.alignment = alignof(T);
+        info.stride = custom_stride;
+
         ComponentOps ops;
         ops.construct = [](void* ptr) { new (ptr) T(); };
         ops.destruct = [](void* ptr) { static_cast<T*>(ptr)->~T(); };
@@ -32,8 +39,12 @@ public:
         ops.copy = [](void* dst, const void* src) {
             new (dst) T(*static_cast<const T*>(src));
         };
-        m_component_ops[id] = ops;
+        info.ops = ops;
+        m_component_info[id] = info;
     }
+
+    // Exposes component metadata for runtime reflection
+    const ComponentInfo& get_component_info(ComponentID id) const { return m_component_info[id]; }
 
     // Exposes current archetype count. Queries use this to know if new archetypes were added.
     u32 get_archetype_count() const { return static_cast<u32>(m_archetypes.size()); }
@@ -70,7 +81,7 @@ private:
     void swap_remove(EntityLocation loc);
 
     std::vector<Archetype*> m_archetypes;
-    ComponentOps m_component_ops[256]; // Component lifecycle functions
+    ComponentInfo m_component_info[256]; // Component metadata and lifecycle functions
 
     // Sparse set: Direct array mapped to entity_index(Entity)
     // Ensures any entity lookup takes 1 memory access

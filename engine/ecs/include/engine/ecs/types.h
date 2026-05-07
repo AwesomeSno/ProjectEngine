@@ -18,6 +18,17 @@ struct ComponentOps {
     void (*copy)(void* dst, const void* src); // Optional for add_component
 };
 
+struct ComponentInfo {
+    ComponentID id;
+    const char* name;
+
+    u32 size;
+    u32 alignment;
+    u32 stride;
+
+    ComponentOps ops;
+};
+
 constexpr Entity NULL_ENTITY = 0xFFFFFFFF;
 
 // 32-bit Entity: 20 bits for Index (1 million active), 12 bits for Generation (ABA safety)
