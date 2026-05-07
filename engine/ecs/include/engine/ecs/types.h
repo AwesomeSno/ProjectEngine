@@ -18,9 +18,30 @@ struct ComponentOps {
     void (*copy)(void* dst, const void* src); // Optional for add_component
 };
 
+enum class ComponentFlags : u32 {
+    None              = 0,
+    Serializable      = 1 << 0,
+    Snapshotable      = 1 << 1,
+    NetworkReplicated = 1 << 2,
+    EditorVisible     = 1 << 3,
+    Deterministic     = 1 << 4
+};
+
+// Enables bitwise operations on ComponentFlags
+inline ComponentFlags operator|(ComponentFlags a, ComponentFlags b) {
+    return static_cast<ComponentFlags>(static_cast<u32>(a) | static_cast<u32>(b));
+}
+inline ComponentFlags operator&(ComponentFlags a, ComponentFlags b) {
+    return static_cast<ComponentFlags>(static_cast<u32>(a) & static_cast<u32>(b));
+}
+inline bool has_flag(ComponentFlags value, ComponentFlags flag) {
+    return (value & flag) != ComponentFlags::None;
+}
+
 struct ComponentInfo {
     ComponentID id;
     const char* name;
+    ComponentFlags flags;
 
     u32 size;
     u32 alignment;

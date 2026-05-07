@@ -9,6 +9,7 @@
 #include <vector>
 #include <new>
 #include <utility>
+#include <type_traits>
 
 namespace engine::ecs {
 
@@ -37,10 +38,11 @@ struct WorldSnapshot {
 class Registry {
 public:
     template<typename T>
-    void register_component(ComponentID id, const char* name, u32 custom_stride = sizeof(T)) {
+    void register_component(ComponentID id, const char* name, ComponentFlags flags = ComponentFlags::None, u32 custom_stride = sizeof(T)) {
         ComponentInfo info;
         info.id = id;
         info.name = name;
+        info.flags = flags;
         info.size = sizeof(T);
         info.alignment = alignof(T);
         info.stride = custom_stride;
@@ -51,9 +53,16 @@ public:
         ops.move = [](void* dst, void* src) { 
             new (dst) T(std::move(*static_cast<T*>(src))); 
         };
-        ops.copy = [](void* dst, const void* src) {
-            new (dst) T(*static_cast<const T*>(src));
-        };
+        
+        // Only assign copy op if the type is copy constructible to prevent compiler errors
+        if constexpr (std::is_copy_constructible_v<T>) {
+            ops.copy = [](void* dst, const void* src) {
+                new (dst) T(*static_cast<const T*>(src));
+            };
+        } else {
+            ops.copy = nullptr;
+        }
+        
         info.ops = ops;
         m_component_info[id] = info;
     }
