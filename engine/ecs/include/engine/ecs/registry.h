@@ -7,6 +7,8 @@
 #include "engine/ecs/types.h"
 #include "engine/ecs/archetype.h"
 #include <vector>
+#include <new>
+#include <utility>
 
 namespace engine::ecs {
 
@@ -19,6 +21,20 @@ struct EntityLocation {
 
 class Registry {
 public:
+    template<typename T>
+    void register_component(ComponentID id) {
+        ComponentOps ops;
+        ops.construct = [](void* ptr) { new (ptr) T(); };
+        ops.destruct = [](void* ptr) { static_cast<T*>(ptr)->~T(); };
+        ops.move = [](void* dst, void* src) { 
+            new (dst) T(std::move(*static_cast<T*>(src))); 
+        };
+        ops.copy = [](void* dst, const void* src) {
+            new (dst) T(*static_cast<const T*>(src));
+        };
+        m_component_ops[id] = ops;
+    }
+
     // Exposes current structural version. Used to invalidate Query caches.
     u64 get_archetype_version() const { return m_archetype_version; }
 
@@ -52,6 +68,7 @@ private:
 
     std::vector<Archetype*> m_archetypes;
     u64 m_archetype_version = 1; // Incremented whenever an Archetype is created/destroyed
+    ComponentOps m_component_ops[256]; // Component lifecycle functions
 
     // Sparse set: Direct array mapped to entity_index(Entity)
     // Ensures any entity lookup takes 1 memory access
