@@ -35,8 +35,11 @@ public:
         m_component_ops[id] = ops;
     }
 
-    // Exposes current structural version. Used to invalidate Query caches.
-    u64 get_archetype_version() const { return m_archetype_version; }
+    // Exposes current archetype count. Queries use this to know if new archetypes were added.
+    u32 get_archetype_count() const { return static_cast<u32>(m_archetypes.size()); }
+    
+    // Retrieves an archetype by exact index for O(1) Query cache updates.
+    Archetype* get_archetype(u32 index) const { return m_archetypes[index]; }
 
     // Filters all archetypes against the bitmask to find perfectly matched component groups
     std::vector<Archetype*> get_matching_archetypes(const ComponentMask& query_mask) const {
@@ -67,7 +70,6 @@ private:
     void swap_remove(EntityLocation loc);
 
     std::vector<Archetype*> m_archetypes;
-    u64 m_archetype_version = 1; // Incremented whenever an Archetype is created/destroyed
     ComponentOps m_component_ops[256]; // Component lifecycle functions
 
     // Sparse set: Direct array mapped to entity_index(Entity)

@@ -44,19 +44,33 @@ inline void internal_chunk_task(void* raw_data, u32, threading::JobCounter*) {
 
 class Query {
 public:
-    explicit Query(const ComponentMask& mask) : m_mask(mask), m_version(0) {}
+    explicit Query(const ComponentMask& mask) : m_mask(mask), m_evaluated_archetypes(0) {}
 
     // Core architectural convergence function.
-    // Uses a lazy-evaluation cache to completely bypass O(N) archetype scanning.
-    // Iterates all chunks matching the mask and instantly saturates the multi-core
-    // job system with N chunks. Jobs are bound to the Scheduler's topological barrier.
+    // Uses continuous incremental caching to evaluate ONLY newly created archetypes,
+    // completely bypassing O(N) archetype rescanning.
     void dispatch(SystemContext& ctx, ChunkJobFunc func) {
-        u64 current_version = ctx.registry->get_archetype_version();
+        u32 current_count = ctx.registry->get_archetype_count();
 
-        // Lazy Cache Invalidation
-        if (m_version != current_version) {
-            m_cached_archetypes = ctx.registry->get_matching_archetypes(m_mask);
-            m_version = current_version;
+        // Additive Cache Evaluation (O(1) amortized, only checks newly built archetypes)
+        if (m_evaluated_archetypes < current_count) {
+            for (u32 i = m_evaluated_archetypes; i < current_count; ++i) {
+                Archetype* arch = ctx.registry->get_archetype(i);
+                
+                // Check if the new archetype perfectly matches this query
+                bool matches = true;
+                for (int bit = 0; bit < 4; ++bit) {
+                    if ((arch->mask.bits[bit] & m_mask.bits[bit]) != m_mask.bits[bit]) {
+                        matches = false;
+                        break;
+                    }
+                }
+                
+                if (matches) {
+                    m_cached_archetypes.push_back(arch);
+                }
+            }
+            m_evaluated_archetypes = current_count;
         }
 
         // Fast Iteration Path: Zero scanning, pure dispatch
@@ -82,7 +96,7 @@ public:
 
 private:
     ComponentMask m_mask;
-    u64 m_version;
+    u32 m_evaluated_archetypes;
     std::vector<Archetype*> m_cached_archetypes;
 };
 
