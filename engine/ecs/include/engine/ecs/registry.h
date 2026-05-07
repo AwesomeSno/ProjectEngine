@@ -36,7 +36,16 @@ public:
         return result;
     }
 
+    // Structural Changes (Called only during safe flush windows, never during queries)
+    void add_component(Entity entity, ComponentID id, void* data, u32 size);
+    void remove_component(Entity entity, ComponentID id);
+    void destroy_entity(Entity entity);
+
 private:
+    // Migration Pipeline
+    void migrate_entity(Entity entity, Archetype* new_archetype);
+    void swap_remove(EntityLocation loc);
+
     std::vector<Archetype*> m_archetypes;
 
     // Sparse set: Direct array mapped to entity_index(Entity)
