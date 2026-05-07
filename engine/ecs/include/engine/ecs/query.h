@@ -42,6 +42,31 @@ inline void internal_chunk_task(void* raw_data, u32, threading::JobCounter*) {
     data->func(view, data->dt);
 }
 
+struct ArchetypeJobData {
+    Archetype* arch;
+    ChunkJobFunc func;
+    SystemContext* ctx;
+};
+
+inline void internal_archetype_task(void* raw_data, u32, threading::JobCounter*) {
+    ArchetypeJobData* data = static_cast<ArchetypeJobData*>(raw_data);
+    SystemContext& ctx = *data->ctx;
+    
+    // Worker Thread Fan-Out: Subdivides the archetype into parallel chunk jobs
+    for (Chunk* chunk : data->arch->chunks) {
+        ChunkJobData* job_data = ctx.frame_allocator->allocate<ChunkJobData>();
+        job_data->chunk = chunk;
+        job_data->func = data->func;
+        job_data->dt = ctx.frame.dt;
+
+        threading::JobDecl job;
+        job.task = internal_chunk_task;
+        job.data = job_data;
+
+        threading::job_system::dispatch(job, ctx.layer_counter);
+    }
+}
+
 class Query {
 public:
     explicit Query(const ComponentMask& mask) : m_mask(mask), m_evaluated_archetypes(0) {}
@@ -73,24 +98,22 @@ public:
             m_evaluated_archetypes = current_count;
         }
 
-        // Fast Iteration Path: Zero scanning, pure dispatch
+        // Hierarchical Job Dispatch:
+        // Main thread only dispatches Archetype jobs (O(A) where A is matching archetypes).
+        // Worker threads then fan out into Chunk jobs (O(C) where C is chunks per archetype).
         for (Archetype* arch : m_cached_archetypes) {
-            for (Chunk* chunk : arch->chunks) {
-                // Must use FrameAllocator because the job data needs to outlive this function scope,
-                // but we cannot block the thread with global heap (malloc/new) locks.
-                ChunkJobData* job_data = ctx.frame_allocator->allocate<ChunkJobData>();
-                job_data->chunk = chunk;
-                job_data->func = func;
-                job_data->dt = ctx.frame.dt;
+            ArchetypeJobData* job_data = ctx.frame_allocator->allocate<ArchetypeJobData>();
+            job_data->arch = arch;
+            job_data->func = func;
+            job_data->ctx = &ctx;
 
-                threading::JobDecl job;
-                job.task = internal_chunk_task;
-                job.data = job_data;
+            threading::JobDecl job;
+            job.task = internal_archetype_task;
+            job.data = job_data;
 
-                // Push to the lock-free Work Stealing Queue.
-                // Links child to the topological layer counter.
-                threading::job_system::dispatch(job, ctx.layer_counter);
-            }
+            // Push Archetype job to WSQ. It links to the layer_counter.
+            // When the Archetype job runs, it pushes Chunk jobs also linked to layer_counter.
+            threading::job_system::dispatch(job, ctx.layer_counter);
         }
     }
 
