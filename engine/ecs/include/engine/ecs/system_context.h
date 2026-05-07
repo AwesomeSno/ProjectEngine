@@ -10,7 +10,7 @@ namespace engine::ecs {
 
 namespace engine::threading { struct JobCounter; }
 namespace engine::memory { class FrameAllocator; }
-namespace engine::ecs { class Registry; class CommandBuffer; }
+namespace engine::ecs { class Registry; class CommandBuffer; class EventBus; }
 
 namespace engine::ecs {
 
@@ -40,6 +40,10 @@ struct SystemContext {
     // 5. Deferred Structural Changes
     // Systems MUST use this to add/remove components or destroy entities.
     CommandBuffer* commands;
+
+    // 6. Deterministic Event Streams
+    // Systems MUST append events here instead of triggering immediate callbacks.
+    EventBus* events;
 };
 
 } // namespace engine::ecs
