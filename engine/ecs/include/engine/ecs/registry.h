@@ -19,6 +19,21 @@ struct EntityLocation {
     u32 row_index = 0;
 };
 
+// Represents a deterministic frozen state of the Registry
+struct WorldSnapshot {
+    struct SnapChunk {
+        Chunk* memory; // 16KB cloned block
+    };
+    struct SnapArchetype {
+        Archetype* source; // Reference to structural metadata (immutable)
+        std::vector<SnapChunk> chunks;
+    };
+    
+    std::vector<SnapArchetype> archetypes;
+    std::vector<EntityLocation> entity_locations;
+    std::vector<u32> free_entities;
+};
+
 class Registry {
 public:
     template<typename T>
@@ -73,6 +88,11 @@ public:
     void add_component(Entity entity, ComponentID id, void* data, u32 size);
     void remove_component(Entity entity, ComponentID id);
     void destroy_entity(Entity entity);
+
+    // Deterministic World Snapshot & Replay
+    WorldSnapshot take_snapshot() const;
+    void restore_snapshot(const WorldSnapshot& snap);
+    void destroy_snapshot(WorldSnapshot& snap) const;
 
 private:
     // Migration Pipeline
