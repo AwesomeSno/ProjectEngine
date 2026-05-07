@@ -1,7 +1,7 @@
 // =============================================================================
 // Project Engine - Job System API
 // =============================================================================
-// (c) AxeomLabs. All Rights Reserved.
+// © Harinandan J V. All Rights Reserved.
 // =============================================================================
 // Core API for dispatching and waiting on jobs. 
 // Features: Parent-Child relationships, Data-driven Continuations.

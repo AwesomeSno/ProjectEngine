@@ -1,7 +1,7 @@
 // =============================================================================
 // Project Engine - System Descriptor
 // =============================================================================
-// (c) AxeomLabs. All Rights Reserved.
+// © Harinandan J V. All Rights Reserved.
 // =============================================================================
 // The non-negotiable execution contract for ECS Systems.
 // Acts as the bridge between the ECS, Job System, and Frame Contract.

@@ -1,7 +1,7 @@
 // =============================================================================
 // Project Engine - Fiber API
 // =============================================================================
-// (c) AxeomLabs. All Rights Reserved.
+// © Harinandan J V. All Rights Reserved.
 // =============================================================================
 // Cross-platform stackful coroutines (Fibers).
 // Abstracts Windows Fibers and POSIX ucontext for preemptive job suspension.

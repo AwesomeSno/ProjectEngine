@@ -1,7 +1,7 @@
 // =============================================================================
 // Project Engine - Lock-Free Work Stealing Queue
 // =============================================================================
-// (c) AxeomLabs. All Rights Reserved.
+// © Harinandan J V. All Rights Reserved.
 // =============================================================================
 // A lock-free Chase-Lev deque. 
 // Single Producer (pushes/pops from the bottom).

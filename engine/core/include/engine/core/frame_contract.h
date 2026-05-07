@@ -1,7 +1,7 @@
 // =============================================================================
 // Project Engine - Frame Execution Contract
 // =============================================================================
-// (c) AxeomLabs. All Rights Reserved.
+// © Harinandan J V. All Rights Reserved.
 // =============================================================================
 // This header enforces the deterministic hybrid-timestep frame model.
 // It is not just documentation; it provides the compile-time guarantees,
